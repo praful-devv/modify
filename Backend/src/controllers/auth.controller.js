@@ -1,6 +1,7 @@
 const authModel = require("../models/auth.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const blackListModel = require("../models/blackList.model")
 
 const registerController = async (req, res) => {
   const { username, email, password } = req.body;
@@ -47,9 +48,11 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
   const { username, email, password } = req.body;
 
-  const isUserExists = await authModel.findOne({
-    $or: [{ email }, { username }],
-  });
+  const isUserExists = await authModel
+    .findOne({
+      $or: [{ email }, { username }],
+    })
+    .select("+password");
 
   if (!isUserExists) {
     return res.status(401).json({
@@ -83,4 +86,43 @@ const loginController = async (req, res) => {
   });
 };
 
-module.exports = { registerController, loginController };
+const meController = async (req, res) => {
+  const userId = req.user.id;
+
+  const user = await authModel.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({
+      message: "user not exists",
+    });
+  }
+
+  return res.status(200).json({
+    user: {
+      username: user.username,
+      email: user.email,
+    },
+  });
+};
+
+const logoutController = async(req,res) => {
+
+  const token = req.cookies.token
+
+  res.clearCookie("token")
+
+  const blackList = await blackListModel.create({
+    token
+  })
+
+  res.status(201).json({
+    message:"logout successfully"
+  })
+}
+
+module.exports = {
+  registerController,
+  loginController,
+  meController,
+  logoutController,
+};
