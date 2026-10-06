@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const blackListModel = require("../models/blackList.model");
-
+const redis = require("../config/cache")
 const identiUser = async (req, res, next) => {
   const token = req.cookies.token;
 
@@ -9,8 +9,8 @@ const identiUser = async (req, res, next) => {
       message: "Unauthorized Access",
     })
   }
-
-  const isTokenBlacklisted = await blackListModel.findOne({token})
+ 
+  const isTokenBlacklisted = await redis.get(token)
 
   if(isTokenBlacklisted){
     return res.status(401).json({

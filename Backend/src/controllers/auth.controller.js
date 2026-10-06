@@ -1,7 +1,8 @@
 const authModel = require("../models/auth.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const blackListModel = require("../models/blackList.model")
+const blackListModel = require("../models/blackList.model");
+const redis = require("../config/cache");
 
 const registerController = async (req, res) => {
   const { username, email, password } = req.body;
@@ -105,20 +106,17 @@ const meController = async (req, res) => {
   });
 };
 
-const logoutController = async(req,res) => {
+const logoutController = async (req, res) => {
+  const token = req.cookies.token;
 
-  const token = req.cookies.token
+  res.clearCookie("token");
 
-  res.clearCookie("token")
-
-  const blackList = await blackListModel.create({
-    token
-  })
+  await redis.set(token,Date.now().toString(),"EX",60*60)
 
   res.status(201).json({
-    message:"logout successfully"
-  })
-}
+    message: "logout successfully",
+  });
+};
 
 module.exports = {
   registerController,
