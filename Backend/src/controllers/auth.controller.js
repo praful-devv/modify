@@ -1,7 +1,6 @@
 const authModel = require("../models/auth.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const blackListModel = require("../models/blackList.model");
 const redis = require("../config/cache");
 
 const registerController = async (req, res) => {
@@ -111,7 +110,7 @@ const logoutController = async (req, res) => {
 
   res.clearCookie("token");
 
-  await redis.set(token,Date.now().toString(),"EX",60*60)
+  await redis.set(token, Date.now().toString(), "EX", 60 * 60);
 
   res.status(201).json({
     message: "logout successfully",
