@@ -1,5 +1,5 @@
 import { createSlice, isPending } from "@reduxjs/toolkit"
-import { RegisterThunk } from "./authThunkSlice"
+import { LoginThunk, MeThunk, RegisterThunk } from "./authThunkSlice"
 
 const authSlice = createSlice({
     name:"auth",
@@ -10,16 +10,36 @@ const authSlice = createSlice({
     reducers:{},
     extraReducers:(builder)=>{
         builder
-        .addCase(RegisterThunk.pending,(state)=>{
-            state.isLoading = true
-        })
-        .addCase(RegisterThunk.fulfilled,(state,action)=>{
-            state.user = action.payload
-            state.isLoading = false
-        })
-        .addCase(RegisterThunk.rejected,(state)=>{
-            state.isLoading = false
-        })
+          .addCase(RegisterThunk.pending, (state) => {
+            state.isLoading = true;
+          })
+          .addCase(RegisterThunk.fulfilled, (state, action) => {
+            state.user = action.payload;
+            state.isLoading = false;
+          })
+          .addCase(RegisterThunk.rejected, (state) => {
+            state.isLoading = false;
+          })
+          .addCase(LoginThunk.pending, (state) => {
+            state.isLoading = true;
+          })
+          .addCase(LoginThunk.fulfilled, (state, action) => {
+            state.user = action.payload;
+            state.isLoading = false;
+          })
+          .addCase(LoginThunk.rejected, (state) => {
+            state.isLoading = false;
+          })
+          .addCase(MeThunk.pending, (state) => {
+            state.isLoading = true;
+          })
+          .addCase(MeThunk.fulfilled, (state, action) => {
+            state.user = action.payload;
+            state.isLoading = false;
+          })
+          .addCase(MeThunk.rejected, (state) => {
+            state.isLoading = false;
+          });
     }
 })
 

@@ -1,20 +1,24 @@
 import Faceexpression from "../services/Faceexpression";
 
+const FaceExpressionDetector = () => {
 
-export default function FaceExpressionDetector() {
-  const { faceLandmarker, detectedExpression, videoRef } = Faceexpression()
+  
 
+  const { faceLandmarker, detectedExpression, videoRef } = Faceexpression();
 
   return (
-    <div>
-      <h2>MediaPipe Face Expression Detector</h2>
-      {!faceLandmarker && <p>Loading AI Models (WASM)...</p>}
-
+    <div className="h-screen flex items-center justify-center ">
       <div>
-        <video ref={videoRef} autoPlay playsInline muted />
-      </div>
+        {!faceLandmarker && <p>Loading AI Models (WASM)...</p>}
 
-      <div>Current State: {detectedExpression}</div>
+        <div>
+          <video ref={videoRef} autoPlay playsInline muted />
+        </div>
+
+        <div className="text-2xl">Current State: {detectedExpression}</div>
+      </div>
     </div>
   );
-}
+};
+
+export default FaceExpressionDetector;

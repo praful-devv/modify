@@ -90,7 +90,7 @@ const Faceexpression = () => {
     });
 
     // Custom threshold rules to determine dominant expression
-    if (shapes["jawOpen"] > 0.4 && shapes["mouthSmileLeft"] < 0.2) {
+    if (shapes["jawOpen"] >0.4 && shapes["mouthSmileLeft"] < 0.4) {
       setDetectedExpression("Surprised 😲");
     } else if (
       shapes["mouthSmileLeft"] > 0.45 ||
@@ -100,8 +100,9 @@ const Faceexpression = () => {
     } else if (shapes["browDownLeft"] > 0.4 && shapes["browDownRight"] > 0.4) {
       setDetectedExpression("Angry/Focused 😡");
     } else if (
-      shapes["mouthFrownLeft"] > 1 ||
-      shapes["mouthFrownRight"] > 0.5
+    
+      shapes["mouthFrownLeft"] > 0.01 ||
+      shapes["mouthFrownRight"] > 0.01
     ) {
       setDetectedExpression("Sad 😢");
     } else {

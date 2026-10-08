@@ -1,12 +1,26 @@
-import React from 'react'
-import { Outlet } from 'react-router'
+import { useSelector } from "react-redux";
+
+import { Navigate, Outlet } from "react-router";
+
+
 
 const PublicRoutes = () => {
+  const {user,isLoading} = useSelector((store) => store.auth)
+
+  if (isLoading) {
+    return <h1>Loading...</h1>;
+  }
+
+
+  if(user){
+    return <Navigate to="/dashboard"></Navigate>
+  }
+
   return (
     <div>
-        <Outlet/>
+      <Outlet />
     </div>
-  )
-}
+  );
+};
 
-export default PublicRoutes
+export default PublicRoutes;

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form"
 import { useDispatch } from "react-redux";
-import { RegisterThunk } from "../state/authThunkSlice";
+import { LoginThunk, RegisterThunk } from "../state/authThunkSlice";
 
 const useAuth = () => {
 
@@ -14,7 +14,7 @@ const useAuth = () => {
   } = useForm()
 
   function LoginForm(data){
-    console.log(data)
+    dispatch(LoginThunk(data))
   }
   function RegisterForm(data){
     dispatch(RegisterThunk(data));

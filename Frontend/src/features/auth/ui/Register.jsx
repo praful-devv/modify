@@ -1,4 +1,5 @@
 
+import { Link } from "react-router";
 import useAuth from "../hooks/useAuth";
 
 const Register = () => {
@@ -44,7 +45,7 @@ const Register = () => {
             {...register("password", {
               required: "password is required",
             })}
-            type="text"
+            type="password"
             placeholder="password"
           />
           <p className="h-8 text-lg md:text-[16px]  text-red-500 ">
@@ -52,7 +53,14 @@ const Register = () => {
           </p>
         </div>
 
-        <button className="bg-green-500 py-2 px-4 text-xl rounded-md capitalize  md:text-lg md:py-1 md:px-2">
+        <p className="text-white mb-4 ">
+          Already have an account ?{" "}
+          <Link className="text-green-500" to="/">
+            login
+          </Link>
+        </p>
+
+        <button className="bg-white py-2 px-4 text-xl rounded-md capitalize  md:text-lg md:py-1 md:px-2">
           Register
         </button>
       </form>
