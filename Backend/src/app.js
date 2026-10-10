@@ -18,13 +18,17 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use("/api/auth", authRouter);
 app.use("/api/song", SongRouter);
-
 app.get("/{*splat}", (req, res, next) => {
-  if (req.path.startsWith("/api/")) {
+  if (req.path.startsWith("/api")) {
     return next();
   }
 
-  res.sendFile(path.join(publicPath, "index.html"));
+  res.sendFile(path.join(publicPath, "index.html"), (err) => {
+    if (err) {
+      console.error("Frontend fallback error:", err);
+      next(err);
+    }
+  });
 });
 
 module.exports = app;
