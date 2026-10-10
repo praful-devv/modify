@@ -8,7 +8,7 @@ import { MeThunk } from '../features/auth/state/authThunkSlice'
 import { useDispatch } from 'react-redux'
 import ProtectedRoutes from '../protectedRoutes/ProtectedRoutes'
 import DashboardLayout from '../layout/DashboardLayout'
-import FaceExpressionDetector from '../features/expressions/ui/FaceExpressionDetector'
+import Home from '../features/home/ui/Home'
 
 
 const MainRoutes = () => {
@@ -49,7 +49,7 @@ const MainRoutes = () => {
             children: [
               {
                 path: "",
-                element: <FaceExpressionDetector/>
+                element: <Home/>
               },
             ],
           },

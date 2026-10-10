@@ -1,116 +1,205 @@
+
 import { useEffect, useRef, useState } from "react";
-import { FilesetResolver, FaceLandmarker } from "@mediapipe/tasks-vision";
+import {
+  FilesetResolver,
+  FaceLandmarker,
+} from "@mediapipe/tasks-vision";
 
 const Faceexpression = () => {
   const videoRef = useRef(null);
+
   const [faceLandmarker, setFaceLandmarker] = useState(null);
-  const [detectedExpression, setDetectedExpression] = useState("Neutral");
-  const requestRef = useRef(null);
+  const [detectedExpression, setDetectedExpression] =
+    useState("not detected");
+  const [cameraReady, setCameraReady] = useState(false);
 
-  // 1. Initialize MediaPipe FaceLandmarker
+  // 1. Initialize MediaPipe model
   useEffect(() => {
+    let isMounted = true;
+    let landmarkerInstance;
+
     async function initModel() {
-      // Load WebAssembly binaries optimized for the browser
-      const filesetResolver = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm",
-      );
+      try {
+        const filesetResolver =
+          await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+          );
 
-      // Create landmarker instance configured for live stream and blendshapes
-      const landmarker = await FaceLandmarker.createFromOptions(
-        filesetResolver,
-        {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-            delegate: "GPU",
-          },
-          outputFaceBlendshapes: true, // Crucial for facial expressions
-          runningMode: "LIVE_STREAM",
-          numFaces: 1,
-        },
-      );
+        const instance = await FaceLandmarker.createFromOptions(
+          filesetResolver,
+          {
+            baseOptions: {
+              modelAssetPath:
+                "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+              delegate: "GPU",
+            },
+            outputFaceBlendshapes: true,
+            runningMode: "VIDEO",
+            numFaces: 1,
+          }
+        );
 
-      setFaceLandmarker(landmarker);
-    }
-    initModel();
+        landmarkerInstance = instance;
 
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, []);
-
-  // 2. Start Webcam Stream once the model loads
-  useEffect(() => {
-    if (!faceLandmarker) return;
-
-    navigator.mediaDevices
-      .getUserMedia({ video: { width: 640, height: 480 } })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.addEventListener("loadeddata", predictLoop);
+        if (isMounted) {
+          setFaceLandmarker(instance);
+        } else {
+          instance.close();
         }
-      })
-      .catch((err) => console.error("Webcam access denied:", err));
-  }, [faceLandmarker]);
-
-  // 3. Process Live Frames
-  const predictLoop = () => {
-    if (!videoRef.current || !faceLandmarker) return;
-
-    let startTimeMs = performance.now();
-
-    // Process frames synchronously aligned to video playback
-    if (videoRef.current.currentTime !== -1) {
-      const results = faceLandmarker.detectForVideo(
-        videoRef.current,
-        startTimeMs,
-      );
-
-      if (
-        results &&
-        results.faceBlendshapes &&
-        results.faceBlendshapes.length > 0
-      ) {
-        interpretExpressions(results.faceBlendshapes[0].categories);
-      } else {
-        setDetectedExpression("No Face Detected");
+      } catch (error) {
+        console.error("Model initialization failed:", error);
       }
     }
 
-    requestRef.current = requestAnimationFrame(predictLoop);
+    initModel();
+
+    return () => {
+      isMounted = false;
+      landmarkerInstance?.close();
+    };
+  }, []);
+
+  // 2. Start webcam after model initialization
+  useEffect(() => {
+    if (!faceLandmarker) return;
+
+    let stream;
+    let cancelled = false;
+
+    async function startCamera() {
+      try {
+        const cameraStream =
+          await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: 640,
+              height: 480,
+            },
+            audio: false,
+          });
+
+        if (cancelled) {
+          cameraStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        stream = cameraStream;
+
+        const video = videoRef.current;
+
+        if (video) {
+          video.srcObject = stream;
+          await video.play();
+
+          if (!cancelled) {
+            setCameraReady(true);
+          }
+        }
+      } catch (error) {
+        console.error("Webcam access failed:", error);
+        setCameraReady(false);
+      }
+    }
+
+    startCamera();
+
+    return () => {
+      cancelled = true;
+      stream?.getTracks().forEach((track) => track.stop());
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+
+      setCameraReady(false);
+    };
+  }, [faceLandmarker]);
+
+  // 3. Detect expression only when called
+  const detectExpression = () => {
+    const video = videoRef.current;
+
+    if (
+      !faceLandmarker ||
+      !video ||
+      video.readyState < 2
+    ) {
+      return null;
+    }
+
+    try {
+      const results = faceLandmarker.detectForVideo(
+        video,
+        performance.now()
+      );
+
+      if (!results.faceBlendshapes?.length) {
+        setDetectedExpression("no face detected");
+        return null;
+      }
+
+      const mood = interpretExpressions(
+        results.faceBlendshapes[0].categories
+      );
+
+      // Update UI state
+      setDetectedExpression(mood);
+
+      // Return current mood immediately
+      return mood;
+    } catch (error) {
+      console.error("Expression detection failed:", error);
+      return null;
+    }
   };
 
-  // 4. Custom Scoring Rule to Map Muscle Groups (Blendshapes) to Human Expressions
+  // 4. Convert blendshapes into a mood label
   const interpretExpressions = (blendshapes) => {
-    // MediaPipe gives you 52 blendshape coefficients from 0.0 to 1.0
     const shapes = {};
+
     blendshapes.forEach((item) => {
       shapes[item.categoryName] = item.score;
     });
 
-    // Custom threshold rules to determine dominant expression
-    if (shapes["jawOpen"] >0.4 && shapes["mouthSmileLeft"] < 0.4) {
-      setDetectedExpression("Surprised 😲");
-    } else if (
-      shapes["mouthSmileLeft"] > 0.45 ||
-      shapes["mouthSmileRight"] > 0.45
+    if (
+      shapes.jawOpen > 0.4 &&
+      shapes.mouthSmileLeft < 0.4 &&
+      shapes.mouthSmileRight < 0.4
     ) {
-      setDetectedExpression("Smiling/Happy 😄");
-    } else if (shapes["browDownLeft"] > 0.4 && shapes["browDownRight"] > 0.4) {
-      setDetectedExpression("Angry/Focused 😡");
-    } else if (
-    
-      shapes["mouthFrownLeft"] > 0.01 ||
-      shapes["mouthFrownRight"] > 0.01
-    ) {
-      setDetectedExpression("Sad 😢");
-    } else {
-      setDetectedExpression("Neutral 😐");
+      return "surprised";
     }
+
+    if (
+      shapes.mouthSmileLeft > 0.45 ||
+      shapes.mouthSmileRight > 0.45
+    ) {
+      return "happy";
+    }
+
+    if (
+      shapes.browDownLeft > 0.3 &&
+      shapes.browDownRight > 0.3
+    ) {
+      return "angry";
+    }
+
+    if (
+      shapes.mouthFrownLeft > 0.01 &&
+      shapes.mouthFrownRight > 0.01
+    ) {
+      return "sad";
+    }
+
+    return "neutral";
   };
 
-  return { faceLandmarker, detectedExpression, videoRef };
+  return {
+    faceLandmarker,
+    detectedExpression,
+    videoRef,
+    detectExpression,
+    cameraReady,
+  };
 };
 
 export default Faceexpression;
+

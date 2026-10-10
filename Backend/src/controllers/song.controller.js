@@ -43,9 +43,9 @@ const getSongController = async(req,res)=>{
   })
 
   res.status(200).json({
-    message:"get song",
-  song
-  })
+    message: "get song",
+    song,
+  });
 
 }
 
