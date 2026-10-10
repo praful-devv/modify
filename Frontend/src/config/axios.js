@@ -1,6 +1,6 @@
 import axios from "axios"
 
 export const api = axios.create({
-    baseURL:"http://localhost:3000/api",
-    withCredentials:true
-})
+  baseURL: "https://modify-c3x9.onrender.com/api",
+  withCredentials: true,
+});
