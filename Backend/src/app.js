@@ -19,4 +19,12 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.use("/api/auth", authRouter);
 app.use("/api/song", SongRouter);
 
+app.get("/{*splat}", (req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    return next();
+  }
+
+  res.sendFile(path.join(publicPath, "index.html"));
+});
+
 module.exports = app;
