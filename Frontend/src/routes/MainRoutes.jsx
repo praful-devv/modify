@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux'
 import ProtectedRoutes from '../protectedRoutes/ProtectedRoutes'
 import DashboardLayout from '../layout/DashboardLayout'
 import Home from '../features/home/ui/Home'
+import Setting from '../features/setting/ui/Setting'
 
 
 const MainRoutes = () => {
@@ -51,6 +52,10 @@ const MainRoutes = () => {
                 path: "",
                 element: <Home/>
               },
+              {
+                path:"setting",
+                element:<Setting/>
+              }
             ],
           },
         ],

@@ -1,4 +1,4 @@
-import { createSlice, isPending } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit"
 import { LoginThunk, MeThunk, RegisterThunk } from "./authThunkSlice"
 
 const authSlice = createSlice({
@@ -7,7 +7,11 @@ const authSlice = createSlice({
         user:null,
         isLoading:false
     },
-    reducers:{},
+    reducers:{
+      logout:(state)=>{
+        state.user = null
+      }
+    },
     extraReducers:(builder)=>{
         builder
           .addCase(RegisterThunk.pending, (state) => {
@@ -43,5 +47,6 @@ const authSlice = createSlice({
     }
 })
 
+export const { logout } = authSlice.actions
 
 export default authSlice.reducer

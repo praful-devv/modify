@@ -1,8 +1,18 @@
 
+import { useEffect } from "react";
 import useSong from "../../home/hooks/useSong";
 import Faceexpression from "../services/Faceexpression";
 
 const FaceExpressionDetector = () => {
+
+  useEffect(() => {
+    console.log("Faceexpression mounted");
+
+    return () => {
+      console.log("Faceexpression unmounted");
+    };
+  }, []);
+
   const {
     faceLandmarker,
     detectedExpression,
