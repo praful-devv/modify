@@ -15,19 +15,6 @@ const Register = () => {
         <div>
           <input
             className="border outline-0   p-3 md:p-2 md:text-lg border-white text-white rounded-xl text-xl"
-            {...register("email", {
-              required: "email is required",
-            })}
-            type="text"
-            placeholder="login"
-          />
-          <p className="h-8 text-lg md:text-[16px]  text-red-500">
-            {errors.email?.message}
-          </p>
-        </div>
-        <div>
-          <input
-            className="border outline-0   p-3 md:p-2 md:text-lg border-white text-white rounded-xl text-xl"
             {...register("username", {
               required: "username is required",
             })}
@@ -36,6 +23,20 @@ const Register = () => {
           />
           <p className="h-8 text-lg md:text-[16px]  text-red-500">
             {errors.username?.message}
+          </p>
+        </div>
+
+        <div>
+          <input
+            className="border outline-0   p-3 md:p-2 md:text-lg border-white text-white rounded-xl text-xl"
+            {...register("email", {
+              required: "email is required",
+            })}
+            type="text"
+            placeholder="email"
+          />
+          <p className="h-8 text-lg md:text-[16px]  text-red-500">
+            {errors.email?.message}
           </p>
         </div>
 

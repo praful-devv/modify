@@ -20,7 +20,7 @@ const Login = () => {
               required: "email is required",
             })}
             type="text"
-            placeholder="login"
+            placeholder="email"
           />
           <p className="h-8 text-lg md:text-[16px] text-red-500">
             {errors.email?.message}
